@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Multi-Level Indexing vs. Flexible # of Extents by eddiealbert</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-dark.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/eddiealbert/Project4">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/eddiealbert/Project4/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/eddiealbert/Project4/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Multi-Level Indexing vs. Flexible # of Extents</h1>
+          <p>A look at sequential and random access speed, along with fragmentation in both file system implementations</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/eddiealbert">eddiealbert</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h3>
+<a id="what-metrics-have-to-be-considered-when-creating-a-file-system" class="anchor" href="#what-metrics-have-to-be-considered-when-creating-a-file-system" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What metrics have to be considered when creating a file system?</h3>
+
+<p>Fragmentation is one such metric to take into consideration when designing a file system. We measure this by looking at how much free space can't be used by our current implementation. The performance of random and sequential access of data blocks are also good metrics to optimize for when designing your system. </p>
+
+<h3>
+<a id="how-can-we-implement-a-file-system-that-performs-optimally-when-taking-these-three-metrics-into-consideration" class="anchor" href="#how-can-we-implement-a-file-system-that-performs-optimally-when-taking-these-three-metrics-into-consideration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How can we implement a file system that performs optimally when taking these three metrics into consideration?</h3>
+
+<p>I looked at two possible file system implementations as solutions.</p>
+
+<ul>
+<li>
+<p><strong>Multi-Level Indexing</strong></p>
+
+<ul>
+<li>This implementation dynamically allocates a hierarchy of pointers as needed.</li>
+<li>Pointers are only created when needed so that meta data is kept to a minimum.</li>
+<li>There are additional pointers to indirect blocks of pointers for larger files.</li>
+</ul>
+</li>
+<li>
+<p><strong>Flexible # of Extents</strong></p>
+
+<ul>
+<li>This implementation dynamically uses extents (contiguous regions/blocks) for each file.</li>
+<li>The extents are organized in a multi-level tree structure.</li>
+<li>Leaf nodes hold the meta data: starting block and contiguous size (how many blocks it takes up)</li>
+</ul>
+</li>
+</ul>
+
+<h3>
+<a id="challengessolutions" class="anchor" href="#challengessolutions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Challenges/Solutions</h3>
+
+<p>The two file system implementations I chose to study are rather complex, so implementing them was not an easy task. As a result, I tried to keep some parts of my implementation simple. For instance, instead of working with actual files, I used Strings to represent files. If I needed to split up a "file" into a set of extents, I just split the string into characters for each extent. For the Multi-Level Index implementation, I had to figure out how I would determine how many blocks could be filled before I had to incorporate an indirect block of pointers. I settled for a system where if a file was greater than 3 blocks (or characters) in size, the fourth pointer would be aimed at an indirect block. I needed to put these blocks somewhere, so I created a Memory class that holds a 64 Block array. This class stores the actual data.  </p>
+
+<p>In order to compare both implementations, I decided to create a Test class where I would do all of my comparisons. I also use this class to dynamically generate strings of various lengths so that I can test my results on a variety of data sets. That class has methods for generating files and for timing each file structure's access speeds. I can control the level of randomness in the generated test cases with a Boolean I called totallyRandom. If set to true, the size of files can vary wildly to the point where a single file can take up about half of the blocks on disk. If set to false, the files are kept rather small and only take up a maximum of 9 blocks.</p>
+
+<h3>
+<a id="how-have-i-compared-each-implementation" class="anchor" href="#how-have-i-compared-each-implementation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How have I compared each implementation?</h3>
+
+<p>I used my Memory's freeSpace() method to see if there are any unused blocks of memory left on disk when testing for fragmentation. At the moment I am debugging the methods that test sequential and random access for both implementations. The problem appears to lie in my implementation of the inode block class.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
